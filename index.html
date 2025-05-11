@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earthquake Time History and Response Spectrum Analysis</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Earthquake Time History and Response Spectrum Analysis</h1>
+        <div class="upload-section">
+            <h2>Upload Time History Data (TXT)</h2>
+            <input type="file" id="fileInput" accept=".txt">
+            <button onclick="processFile()">Process Data</button>
+        </div>
+        <div class="download-section">
+            <h2>Download Response Spectrum</h2>
+            <a id="downloadLinkU" href="#" download="response_spectrum_U.txt">
+                <button disabled>Download Response Spectrum U (Vertical) (TXT)</button>
+            </a>
+            <a id="downloadLinkN" href="#" download="response_spectrum_N.txt">
+                <button disabled>Download Response Spectrum N (North-South) (TXT)</button>
+            </a>
+            <a id="downloadLinkE" href="#" download="response_spectrum_E.txt">
+                <button disabled>Download Response Spectrum E (East-West) (TXT)</button>
+            </a>
+        </div>
+        <div class="charts-section">
+            <div class="chart-container">
+                <h2>Time History Plot - U (Vertical)</h2>
+                <canvas id="timeHistoryChartU"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Response Spectrum Plot - U (Vertical)</h2>
+                <canvas id="responseSpectrumChartU"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Time History Plot - N (North-South)</h2>
+                <canvas id="timeHistoryChartN"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Response Spectrum Plot - N (North-South)</h2>
+                <canvas id="responseSpectrumChartN"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Time History Plot - E (East-West)</h2>
+                <canvas id="timeHistoryChartE"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Response Spectrum Plot - E (East-West)</h2>
+                <canvas id="responseSpectrumChartE"></canvas>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
