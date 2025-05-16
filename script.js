@@ -2,6 +2,43 @@
 let timeHistoryChartU, timeHistoryChartN, timeHistoryChartE;
 let responseSpectrumChartU, responseSpectrumChartN, responseSpectrumChartE;
 
+// Core function to process time history text (shared by file and demo)
+function processText(text) {
+    const lines = text.split('\n').filter(line => line.trim() !== '' && !line.startsWith('#'));
+    const timeHistoryData = lines.map(line => {
+        const values = line.split(/\s+/).filter(val => val.trim() !== '').map(Number);
+        if (values.length >= 4) {
+            return { 
+                time: values[0], 
+                u: values[1],    // Vertical acceleration 
+                n: values[2],    // North-South acceleration
+                e: values[3]     // East-West acceleration
+            };
+        }
+        return null;
+    }).filter(item => item !== null);
+
+    plotTimeHistory(timeHistoryData);
+
+    const responseSpectrumDataU_g = calculateResponseSpectrum(timeHistoryData, 'u');
+    const responseSpectrumDataN_g = calculateResponseSpectrum(timeHistoryData, 'n');
+    const responseSpectrumDataE_g = calculateResponseSpectrum(timeHistoryData, 'e');
+
+    const toGal = data_g => data_g.map(d => ({ ...d, spectralAcceleration: d.spectralAcceleration * 981 / 1000 }));
+
+    const responseSpectrumDataU = toGal(responseSpectrumDataU_g);
+    const responseSpectrumDataN = toGal(responseSpectrumDataN_g);
+    const responseSpectrumDataE = toGal(responseSpectrumDataE_g);
+
+    plotResponseSpectrum(responseSpectrumDataU, 'U');
+    plotResponseSpectrum(responseSpectrumDataN, 'N');
+    plotResponseSpectrum(responseSpectrumDataE, 'E');
+
+    enableDownload(responseSpectrumDataU, 'U');
+    enableDownload(responseSpectrumDataN, 'N');
+    enableDownload(responseSpectrumDataE, 'E');
+}
+
 // Function to process the uploaded file
 function processFile() {
     const fileInput = document.getElementById('fileInput');
@@ -10,54 +47,35 @@ function processFile() {
         alert('Please select a file to upload.');
         return;
     }
-
     const reader = new FileReader();
     reader.onload = function(e) {
-        const text = e.target.result;
-        const lines = text.split('\n').filter(line => line.trim() !== '' && !line.startsWith('#'));
-        
-        // Parse the data correctly
-        const timeHistoryData = lines.map(line => {
-            const values = line.split(/\s+/).filter(val => val.trim() !== '').map(Number);
-            // Ensure we have at least 4 values (time, u, n, e)
-            if (values.length >= 4) {
-                return { 
-                    time: values[0], 
-                    u: values[1],    // Vertical acceleration 
-                    n: values[2],    // North-South acceleration
-                    e: values[3]     // East-West acceleration
-                };
-            }
-            return null;
-        }).filter(item => item !== null); // Remove any null entries
-
-        // Plot time history data for each direction
-        plotTimeHistory(timeHistoryData);
-
-        // Calculate response spectrum for each direction (results in 'g')
-        const responseSpectrumDataU_g = calculateResponseSpectrum(timeHistoryData, 'u');
-        const responseSpectrumDataN_g = calculateResponseSpectrum(timeHistoryData, 'n');
-        const responseSpectrumDataE_g = calculateResponseSpectrum(timeHistoryData, 'e');
-
-        // Convert spectral acceleration from g to gal (1g = 981 gal)
-        const toGal = data_g => data_g.map(d => ({ ...d, spectralAcceleration: d.spectralAcceleration * 981 }));
-
-        const responseSpectrumDataU = toGal(responseSpectrumDataU_g);
-        const responseSpectrumDataN = toGal(responseSpectrumDataN_g);
-        const responseSpectrumDataE = toGal(responseSpectrumDataE_g);
-
-        // Plot response spectrum for each direction
-        plotResponseSpectrum(responseSpectrumDataU, 'U');
-        plotResponseSpectrum(responseSpectrumDataN, 'N');
-        plotResponseSpectrum(responseSpectrumDataE, 'E');
-
-        // Enable download of response spectrum data for each direction
-        enableDownload(responseSpectrumDataU, 'U'); // Data is now in gal
-        enableDownload(responseSpectrumDataN, 'N'); // Data is now in gal
-        enableDownload(responseSpectrumDataE, 'E'); // Data is now in gal
+        processText(e.target.result);
     };
     reader.readAsText(file);
 }
+
+// Demo Data Button: fetch cx921.txt and process as demo
+document.addEventListener('DOMContentLoaded', function() {
+    const demoBtn = document.getElementById('demoDataBtn');
+    if (demoBtn) {
+        demoBtn.addEventListener('click', function() {
+            fetch('cx921.txt')
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to load demo data');
+                    return res.text();
+                })
+                .then(text => {
+                    processText(text);
+                    // Optionally, visually indicate demo is loaded
+                    demoBtn.textContent = 'Demo Data (已載入)';
+                    setTimeout(() => { demoBtn.textContent = 'Demo Data'; }, 2000);
+                })
+                .catch(err => {
+                    alert('載入 demo data 失敗: ' + err.message);
+                });
+        });
+    }
+});
 
 // Function to plot time history data using Chart.js for all directions
 function plotTimeHistory(data) {
